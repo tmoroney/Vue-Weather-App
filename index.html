@@ -26,13 +26,19 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 20px;
     }
+
     .stats {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 10px;
       margin-top: 30px;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       margin-left: 2%;
+    }
+
+    .saturated-background {
+      filter: saturate(150%);
+      /* Adjust the percentage value to control the saturation level */
     }
   </style>
 
@@ -40,83 +46,84 @@
 
 <body>
   <div id="app">
-      <div class="ui center aligned segment"
-        :style="{ backgroundImage: 'url(' + weather.imageUrl + ')', backgroundSize: 'cover', backgroundPosition: 'center center' }">
-        <div
-          style="background-color: rgba(255, 255, 255, 0.7); padding: 2%; border-radius: 10px; box-shadow: 0 0 30px 5px #fff;">
-          <h2 class="ui center aligned icon header" style="font-family:Arial, Helvetica, sans-serif; font-weight:bold;">
-            <i class="blue cloud icon"></i>
-            Weather App
-          </h2>
-          <div class="ui icon input" style="margin-top: 10px">
-            <input type="text" v-model="cityName" placeholder="Enter a city name" v-on:keyup.enter="fetchWeather">
-            <i class="search icon"></i>
-          </div>
-          <button class="ui primary button" @click="fetchWeather" style="margin-left: 8px">Get Weather</button>
+    <div class="ui center aligned segment saturated-background"
+      :style="{ backgroundImage: 'url(' + weather.imageUrl + ')', backgroundSize: 'cover', backgroundPosition: 'center center'}">
+      <div
+        style="background-color: rgba(255, 255, 255, 0.7); padding: 5%; border-radius: 10px; box-shadow: 0 0 30px 5px #fff;">
+        <h2 class="ui center aligned icon header" style="font-family:Arial, Helvetica, sans-serif; font-weight:bold;">
+          <i class="blue cloud icon"></i>
+          Weather App
+        </h2>
+        <div class="ui icon input" style="margin-top: 10px">
+          <input type="text" v-model="cityName" placeholder="Enter a city name" v-on:keyup.enter="fetchWeather">
+          <i class="search icon"></i>
         </div>
+        <button class="ui primary button" @click="fetchWeather" style="margin-left: 8px">Get Weather</button>
       </div>
+    </div>
 
-      <div class="ui segment" v-if="isLoading" style="height:200px">
-        <div class="ui active inverted dimmer">
-          <div class="ui text loader">Loading</div>
-        </div>
-        <p></p>
+    <div class="ui segment" v-if="isLoading" style="height:200px">
+      <div class="ui active inverted dimmer">
+        <div class="ui text loader">Loading</div>
       </div>
+      <p></p>
+    </div>
 
-      <div v-if="weather.days" style="margin-top: 10px">
-        <div class="ui message">
-          <div class="content">
-            <div class="header"><i :class="['flag', weather.countryCode]" style="padding-right:5px"></i>Weather for
-              {{weather.city}}, {{weather.country}}</div>
-            <div class="stats">
-              <div :class="[weather.tempColor, 'ui', 'statistic']">
-                <div class="label">
-                  Weather type
-                </div>
-                <div class="value">
-                  {{weather.type}}
-                </div>
+    <div v-if="weather.days" style="margin-top: 10px">
+      <div class="ui message">
+        <div class="content">
+          <div class="header"><i :class="['flag', weather.countryCode]" style="padding-right:5px"></i>Weather for
+            {{weather.city}}, {{weather.country}}</div>
+          <div class="stats">
+            <div :class="[weather.tempColor, 'ui', 'statistic']">
+              <div class="value">
+                {{weather.type}}
               </div>
-              <div class="ui statistic">
-                <div class="value">
-                 {{weather.averageTemp}}°C
-                </div>
-                <div class="label">
-                  Average Temperature
-                </div>
-              </div>
-              <div class="ui statistic">
-                <div class="value">
-                  {{weather.averageRainfall}}
-                </div>
-                <div class="label">
-                  Average Precipitation
-                </div>
-              </div>
-              <div class="ui statistic">
-                <div class="value">
-                  <i class="purple mini angle double right icon"></i>
-                  {{weather.averageWindSpeed}}
-                </div>
-                <div class="label">
-                  Average Wind Speed
-                </div>
-              </div>
-              <div class="ui statistic">
-                <div class="value">
-                  {{weather.airQuality}}
-                  <i class="green mini tree icon"></i>
-                </div>
-                <div class="label">
-                  Air Quality
-                </div>
+              <div class="label">
+                Weather Type
               </div>
             </div>
+            <div class="ui statistic">
+              <div class="value">
+                {{weather.averageTemp}}°C
+              </div>
+              <div class="label">
+                Avg. Temperature
+              </div>
+            </div>
+            <div class="ui statistic">
+              <div class="value">
+                {{weather.averageRainfall}}
+                <i class="blue tint icon"></i>
+              </div>
+              <div class="label">
+                Avg. Daily Rainfall
+              </div>
+            </div>
+            <div class="ui statistic">
+              <div class="value">
+                <i class="purple mini angle double right icon"></i>
+                {{weather.averageWindSpeed}}
+              </div>
+              <div class="label">
+                Average Wind Speed
+              </div>
+            </div>
+            <div class="ui statistic">
+              <div class="value">
+                {{weather.airQuality}}
+                <i class="green mini tree icon"></i>
+              </div>
+              <div class="label">
+                Air Quality (1-5)
+              </div>
+            </div>
+          </div>
         </div>
         <div class="ui negative icon message" v-if="weather.airPolutionWarning">
           <i class="bullhorn icon"></i>
           <div class="content">
-            <div class="header">Bring a mask for your health!</div>
+            <div class="header">Wear a mask for your health!</div>
             <p>The air pollution is very high in {{weather.city}} this week.</p>
           </div>
         </div>
@@ -124,15 +131,29 @@
           <i class="umbrella icon"></i>
           <div class="content">
             <div class="header">Make sure to bring an Umbrella!</div>
-            <p>There will be rain on {{weather.daysWithRain.join(', ')}}</p>
+            <p>There will be rain on <b>{{weather.daysWithRain.join(', ')}}</b></p>
           </div>
         </div>
         <div class="wrapper">
           <div v-for="(details, day) in weather.days">
-            <div class="ui segment flex-segment" style="height: 100%">
-              <h3 class="header">{{day}}</h3>
-              <p>Temperature: <b>{{weather.summary[day].temp}}°C</b></p>
-              <p>Rainfall: <b>{{weather.summary[day].rain}}mm</b></p>
+            <div class="ui center aligned segment flex-segment" style="height: 100%">
+              <h2 class="header">{{day}}</h2>
+              <div class="ui statistic" style="margin-right: 5%">
+                <div class="value">
+                  {{weather.summary[day].temp}}°C
+                </div>
+                <div class="label">
+                  Temperature
+                </div>
+              </div>
+              <div class="ui statistic">
+                <div class="value">
+                  {{weather.summary[day].rain}}
+                </div>
+                <div class="label">
+                  Rainfall
+                </div>
+              </div>
               <table class="ui celled table">
                 <thead>
                   <tr>
@@ -155,43 +176,43 @@
           </div>
         </div>
       </div>
-  </div>
+    </div>
 
-  <script>
-    const { createApp, ref } = Vue
+    <script>
+      const { createApp, ref } = Vue
 
-    createApp({
-      data() {
-        return {
-          locationList: null,
-          cityName: '',
-          weather: {
-            imageUrl: null,
-          },
-          isLoading: false
-        };
-      },
-      methods: {
-        fetchWeather() {
-          this.isLoading = true;
-          const url = `http://localhost:3000/weather/${this.cityName}`;
-          const xhttpr = new XMLHttpRequest();
-          xhttpr.open('GET', url, true);
-          xhttpr.send();
-          xhttpr.onload = () => {
-            if (xhttpr.status === 200) {
-              const response = xhttpr.response;
-              this.weather = JSON.parse(response);
-              console.log(this.weather);
-              this.isLoading = false;
-            } else {
-              console.log('Error getting data from server');
-            }
+      createApp({
+        data() {
+          return {
+            locationList: null,
+            cityName: '',
+            weather: {
+              imageUrl: null,
+            },
+            isLoading: false
           };
         },
-      },
-    }).mount('#app');
-  </script>
+        methods: {
+          fetchWeather() {
+            this.isLoading = true;
+            const url = `http://localhost:3000/weather/${this.cityName}`;
+            const xhttpr = new XMLHttpRequest();
+            xhttpr.open('GET', url, true);
+            xhttpr.send();
+            xhttpr.onload = () => {
+              if (xhttpr.status === 200) {
+                const response = xhttpr.response;
+                this.weather = JSON.parse(response);
+                console.log(this.weather);
+                this.isLoading = false;
+              } else {
+                console.log('Error getting data from server');
+              }
+            };
+          },
+        },
+      }).mount('#app');
+    </script>
 </body>
 
 </html>

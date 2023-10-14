@@ -54,7 +54,6 @@ app.get("/weather/:city", async (request, response) => {
             days: null
         };
 
-        var totalPrecipitation = 0;
         var totalWindSpeed = 0;
         var totalTemp = 0;
         var count = 1;
@@ -79,7 +78,6 @@ app.get("/weather/:city", async (request, response) => {
 
             count++;
             totalTemp += data.temp;
-            totalPrecipitation += data.precipitation;
             totalWindSpeed += data.wind_speed;
             info[day] = info[day] ? info[day].concat(data) : [data];
         }
@@ -106,7 +104,7 @@ app.get("/weather/:city", async (request, response) => {
             totalAirPolution += airQuality;
             //var date = new Date(airPolution.data.list[count].dt * 1000);
             count++;
-            if (airQuality > 10) {
+            if (airQuality >= 5) { // 5 is the highest air pollution using api scale (1-5)
                 weatherData.airPolutionWarning = true;
             }
             if (airQuality > highestAirPolution) {
@@ -115,7 +113,6 @@ app.get("/weather/:city", async (request, response) => {
         }
 
         weatherData.averageTemp = Math.floor(averageTemp);
-        weatherData.averageRainfall = (totalPrecipitation / count).toFixed(2);
         weatherData.averageWindSpeed = (totalWindSpeed / count).toFixed(2);
         weatherData.airQuality = Math.floor(totalAirPolution / count);
         weatherData.highestAirPolution = highestAirPolution;
@@ -130,11 +127,9 @@ app.get("/weather/:city", async (request, response) => {
                 'Authorization': pexelsAPI,
             },
         });
-        if (imageData.data.photos.length > 0) {
-            weatherData.imageUrl = imageData.data.photos[0].src.landscape; // Get the first image from the search results
-        }
 
         // add summary for each day
+        var totalPrecipitation = 0;
         for (const day in weatherData.days) {
             var precipitation = 0;
             var totalTemperature = 0;
@@ -147,54 +142,14 @@ app.get("/weather/:city", async (request, response) => {
                 rain: precipitation.toFixed(2),
                 temp: Math.floor(averageTemperature)
             };
+            totalPrecipitation += precipitation;
+        }
+        weatherData.averageRainfall = (totalPrecipitation / Object.keys(weatherData.summary).length).toFixed(2);
+
+        if (imageData.data.photos.length > 0) {
+            weatherData.imageUrl = imageData.data.photos[0].src.landscape; // Get the first image from the search results
         }
 
-        response.send(weatherData);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-});
-
-app.get("/location/:city", async (request, response) => {
-    console.log("Recieved GET request for /location");
-    const city = request.params.city;
-    try {
-        const locations = await axios.get(`http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=4&appid=${apiKey}`);
-        var results = []
-        for (let i = 0; i < locations.data.length; i++) {
-            results.push({
-                name: locations.data[i].name,
-                country: locations.data[i].country,
-                lat: locations.data[i].lat,
-                lon: locations.data[i].lon
-            });
-        }
-        response.send(results);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-});
-
-app.get("/weather/:lat/:lon", async (request, response) => {
-    const lat = request.params.lat;
-    const lon = request.params.lon;
-    try {
-        const result = await axios.get(`http://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
-        var weatherData = {};
-
-        for (let i = 0; i < result.data.list.length; i++) {
-            var data = {
-                temp: result.data.list[i].main.temp,
-                feels_like: result.data.list[i].main.feels_like,
-                humidity: result.data.list[i].main.humidity,
-                wind_speed: result.data.list[i].wind.speed,
-                description: result.data.list[i].weather[0].description,
-                time: result.data.list[i].dt_txt.split(' ')[1].replace(/:00$/, '')
-            };
-            var dayNum = new Date(result.data.list[i].dt_txt).getDay();
-            var day = dayNames[dayNum];
-            weatherData[day] = weatherData[day] ? weatherData[day].concat(data) : [data];
-        }
         response.send(weatherData);
     } catch (error) {
         console.error('Error fetching data:', error);
