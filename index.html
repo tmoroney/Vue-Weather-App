@@ -93,8 +93,8 @@
             </div>
             <div class="ui statistic">
               <div class="value">
-                {{weather.averageRainfall}}
                 <i class="blue tint icon"></i>
+                {{weather.averageRainfall}}
               </div>
               <div class="label">
                 Avg. Daily Rainfall
@@ -111,8 +111,8 @@
             </div>
             <div class="ui statistic">
               <div class="value">
+                <i class="green bullseye icon"></i>
                 {{weather.airQuality}}
-                <i class="green mini tree icon"></i>
               </div>
               <div class="label">
                 Air Quality (1-5)
@@ -139,7 +139,7 @@
           <div v-for="(details, day) in weather.days">
             <div class="ui center aligned segment flex-segment" style="height: 100%">
               <h2 class="header" style="margin-bottom: 2px;">{{day}}</h2>
-              <div class="ui statistic">
+              <div class="ui statistic" style="margin-right: 5%">
                 <div class="value">
                   {{weather.summary[day].temp}}°C
                 </div>
@@ -160,7 +160,7 @@
                 <div class="bar" :style="{ width: weather.summary[day].outdoorRating*10 + '%'}">
                   <div class="progress">Outdoors: {{weather.summary[day].outdoorRating}}/10</div>
                 </div>
-                <div style="margin: 6px">Score based on Humidity, Temperature and Rainfall</div>
+                <div style="margin-top: 5px; margin-bottom: 1px">Based on Humidity, Temperature and Rainfall</div>
               </div>
               <table class="ui celled table">
                 <thead>

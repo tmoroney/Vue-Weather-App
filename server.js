@@ -164,13 +164,17 @@ app.get("/weather/:city", async (request, response) => {
         var count = 0;
         var totalAirPolution = 0;
         var highestAirPolution = 0;
+        var airPolutionCount = 0;
         while (count < airPolution.data.list.length) {
             var airQuality = airPolution.data.list[count].components.pm2_5;
             totalAirPolution += airQuality;
             //var date = new Date(airPolution.data.list[count].dt * 1000);
             count++;
-            if (airQuality > 12) { // 10 is the highest air pollution using api scale (1-10)
-                weatherData.airPolutionWarning = true;
+            if (airQuality > 10) {
+                airPolutionCount++;
+                if (airPolutionCount == 20) { // stop single hour of high air polution from triggering warning
+                    weatherData.airPolutionWarning = true;
+                }
             }
             if (airQuality > highestAirPolution) {
                 highestAirPolution = airQuality;
