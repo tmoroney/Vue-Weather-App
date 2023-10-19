@@ -134,11 +134,12 @@
             <p>There will be rain on <b>{{weather.daysWithRain.join(', ')}}</b></p>
           </div>
         </div>
+
         <div class="wrapper">
           <div v-for="(details, day) in weather.days">
             <div class="ui center aligned segment flex-segment" style="height: 100%">
-              <h2 class="header">{{day}}</h2>
-              <div class="ui statistic" style="margin-right: 5%">
+              <h2 class="header" style="margin-bottom: 2px;">{{day}}</h2>
+              <div class="ui statistic">
                 <div class="value">
                   {{weather.summary[day].temp}}°C
                 </div>
@@ -153,6 +154,13 @@
                 <div class="label">
                   Rainfall
                 </div>
+              </div>
+              <div :class="['ui', getClassForRating(weather.summary[day].outdoorRating), 'progress']"
+                style="margin-bottom: 0px; margin-top: 2px">
+                <div class="bar" :style="{ width: weather.summary[day].outdoorRating*10 + '%'}">
+                  <div class="progress">Outdoors: {{weather.summary[day].outdoorRating}}/10</div>
+                </div>
+                <div style="margin: 6px">Score based on Humidity, Temperature and Rainfall</div>
               </div>
               <table class="ui celled table">
                 <thead>
@@ -193,6 +201,15 @@
           };
         },
         methods: {
+          getClassForRating(rating) {
+            if (rating >= 7) {
+              return 'green';
+            } else if (rating >= 4) {
+              return 'yellow';
+            } else {
+              return 'red';
+            }
+          },
           fetchWeather() {
             this.isLoading = true;
             const url = `http://localhost:3000/weather/${this.cityName}`;

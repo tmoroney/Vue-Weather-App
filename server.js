@@ -20,6 +20,71 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
+function calculateOutdoorRating(temperature, humidity, rain) {
+    var outdoorRating = 10;
+    if (temperature < 5) {
+        outdoorRating -= 3;
+    } else if (temperature < 13) {
+        outdoorRating -= 2;
+    } else if (temperature > 30 && humidity > 60) {
+        outdoorRating -= 3;
+    } else if (temperature > 35) {
+        outdoorRating -= 3;
+    }
+
+    if (humidity > 70) {
+        outdoorRating -= 2;
+    }
+
+    if (rain > 35) {
+        outdoorRating -= 5;
+    } else if (rain > 15) {
+        outdoorRating -= 3;
+    } else if (rain > 2) {
+        outdoorRating -= 2;
+    } else if (rain > 0 && temperature < 13) {
+        outdoorRating -= 2;
+    } else if (rain > 0) {
+        outdoorRating -= 1;
+    }
+
+    return outdoorRating;
+}
+
+function oldOutdoorRating(temperature, humidity, rain) {
+    // Define weightings for each parameter (adjust as needed)
+    const tempWeight = 0.2;
+    const humidityWeight = 0.3;
+    const rainWeight = 0.4;
+
+    const maxTemperature = 40;
+    const maxRainValue = 150;
+
+    // Normalize data if necessary (e.g., scale humidity and rain to the [0, 1] range)
+    const normalizedHumidity = humidity / 100; // Assuming humidity is in percentage
+    const normalizedRain = rain / maxRainValue; // Normalize rain based on max value
+
+    // Calculate scores for each parameter
+    const tempScore = temperature / maxTemperature;
+    const humidityScore = 1 - normalizedHumidity; // Inverse relationship
+    const rainScore = 1 - normalizedRain; // Inverse relationship
+
+    // Calculate the overall score
+    const outdoorScore = ((
+        tempWeight * tempScore +
+        humidityWeight * humidityScore +
+        rainWeight * rainScore
+    ) * 10).toFixed(1);
+
+    return outdoorScore;
+}
+
+function capitalizeWords(str) {
+    return str.replace(/\b\w/g, function (match) {
+        return match.toUpperCase();
+    });
+}
+
 app.get("/weather/:city", async (request, response) => {
     const city = request.params.city;
     try {
@@ -65,7 +130,7 @@ app.get("/weather/:city", async (request, response) => {
                 humidity: result.data.list[i].main.humidity,
                 precipitation: result.data.list[i].rain ? result.data.list[i].rain["3h"] : 0,
                 wind_speed: result.data.list[i].wind.speed,
-                description: result.data.list[i].weather[0].description,
+                description: capitalizeWords(result.data.list[i].weather[0].description),
                 time: result.data.list[i].dt_txt.split(' ')[1].replace(/:00$/, '')
             };
 
@@ -100,11 +165,11 @@ app.get("/weather/:city", async (request, response) => {
         var totalAirPolution = 0;
         var highestAirPolution = 0;
         while (count < airPolution.data.list.length) {
-            var airQuality = airPolution.data.list[count].main.aqi;
+            var airQuality = airPolution.data.list[count].components.pm2_5;
             totalAirPolution += airQuality;
             //var date = new Date(airPolution.data.list[count].dt * 1000);
             count++;
-            if (airQuality >= 5) { // 5 is the highest air pollution using api scale (1-5)
+            if (airQuality > 12) { // 10 is the highest air pollution using api scale (1-10)
                 weatherData.airPolutionWarning = true;
             }
             if (airQuality > highestAirPolution) {
@@ -133,21 +198,34 @@ app.get("/weather/:city", async (request, response) => {
         for (const day in weatherData.days) {
             var precipitation = 0;
             var totalTemperature = 0;
+            var totalHumidity = 0;
             for (let i = 0; i < weatherData.days[day].length; i++) {
                 precipitation += weatherData.days[day][i].precipitation;
                 totalTemperature += weatherData.days[day][i].temp;
+                totalHumidity += weatherData.days[day][i].humidity;
             }
-            var averageTemperature = totalTemperature / weatherData.days[day].length;
+            var averageTemperature = Math.floor(totalTemperature / weatherData.days[day].length);
+            var averageHumidity = Math.floor(totalHumidity / weatherData.days[day].length);
+            var outdoorRating = calculateOutdoorRating(averageTemperature, averageHumidity, precipitation.toFixed(2));
             weatherData.summary[day] = {
                 rain: precipitation.toFixed(2),
-                temp: Math.floor(averageTemperature)
+                temp: averageTemperature,
+                humidity: averageHumidity,
+                outdoorRating: Math.floor(outdoorRating)
             };
             totalPrecipitation += precipitation;
         }
-        weatherData.averageRainfall = (totalPrecipitation / Object.keys(weatherData.summary).length).toFixed(2);
+        weatherData.averageRainfall = (totalPrecipitation / Object.keys(weatherData.summary).length).toFixed(1);
 
         if (imageData.data.photos.length > 0) {
             weatherData.imageUrl = imageData.data.photos[0].src.landscape; // Get the first image from the search results
+        }
+
+        // Calculate outdoor rating
+        for (let i = 0; i < weatherData.summary.length; i++) {
+            const day = weatherData.days[i];
+            const outdoorRating =
+                day.outdoorRating = outdoorRating;
         }
 
         response.send(weatherData);
