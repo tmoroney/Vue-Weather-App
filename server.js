@@ -26,7 +26,7 @@ function calculateOutdoorRating(temperature, humidity, rain) {
         outdoorRating -= 3;
     } else if (temperature < 13) {
         outdoorRating -= 2;
-    } else if (temperature > 30 && humidity > 60) {
+    } else if (temperature > 30 && humidity > 55) {
         outdoorRating -= 3;
     } else if (temperature > 35) {
         outdoorRating -= 3;
@@ -49,34 +49,6 @@ function calculateOutdoorRating(temperature, humidity, rain) {
     }
 
     return outdoorRating;
-}
-
-function oldOutdoorRating(temperature, humidity, rain) {
-    // Define weightings for each parameter (adjust as needed)
-    const tempWeight = 0.2;
-    const humidityWeight = 0.3;
-    const rainWeight = 0.4;
-
-    const maxTemperature = 40;
-    const maxRainValue = 150;
-
-    // Normalize data if necessary (e.g., scale humidity and rain to the [0, 1] range)
-    const normalizedHumidity = humidity / 100; // Assuming humidity is in percentage
-    const normalizedRain = rain / maxRainValue; // Normalize rain based on max value
-
-    // Calculate scores for each parameter
-    const tempScore = temperature / maxTemperature;
-    const humidityScore = 1 - normalizedHumidity; // Inverse relationship
-    const rainScore = 1 - normalizedRain; // Inverse relationship
-
-    // Calculate the overall score
-    const outdoorScore = ((
-        tempWeight * tempScore +
-        humidityWeight * humidityScore +
-        rainWeight * rainScore
-    ) * 10).toFixed(1);
-
-    return outdoorScore;
 }
 
 function capitalizeWords(str) {
@@ -168,9 +140,8 @@ app.get("/weather/:city", async (request, response) => {
         while (count < airPolution.data.list.length) {
             var airQuality = airPolution.data.list[count].components.pm2_5;
             totalAirPolution += airQuality;
-            //var date = new Date(airPolution.data.list[count].dt * 1000);
             count++;
-            if (airQuality > 10) {
+            if (airQuality > 15) {
                 airPolutionCount++;
                 if (airPolutionCount == 20) { // stop single hour of high air polution from triggering warning
                     weatherData.airPolutionWarning = true;
