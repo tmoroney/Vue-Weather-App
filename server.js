@@ -91,6 +91,13 @@ app.get("/weather/:city", async (request, response) => {
             days: null
         };
 
+        const imageData = await axios.get('https://api.pexels.com/v1/search', {
+            params: { query: `${weatherData.city}`, per_page: 1 }, // You can adjust 'per_page' as needed
+            headers: {
+                'Authorization': pexelsAPI,
+            },
+        });
+
         var totalWindSpeed = 0;
         var totalTemp = 0;
         var count = 1;
@@ -109,8 +116,9 @@ app.get("/weather/:city", async (request, response) => {
             var dayNum = new Date(result.data.list[i].dt_txt).getDay();
             var day = dayNames[dayNum];
 
-            if (data.description.includes('rain') && !weatherData.daysWithRain.includes(day)) {
+            if (data.description.includes('Rain') && !weatherData.daysWithRain.includes(day)) {
                 weatherData.daysWithRain.push(day);
+                weatherData.umbrellaWarning = true;
             }
 
             count++;
@@ -155,18 +163,7 @@ app.get("/weather/:city", async (request, response) => {
         weatherData.averageTemp = Math.floor(averageTemp);
         weatherData.averageWindSpeed = (totalWindSpeed / count).toFixed(2);
         weatherData.airQuality = Math.floor(totalAirPolution / count);
-        weatherData.highestAirPolution = highestAirPolution;
-
-        if (weatherData.daysWithRain.length > 0) {
-            weatherData.umbrellaWarning = true;
-        }
-
-        const imageData = await axios.get('https://api.pexels.com/v1/search', {
-            params: { query: `${weatherData.city}`, per_page: 1 }, // You can adjust 'per_page' as needed
-            headers: {
-                'Authorization': pexelsAPI,
-            },
-        });
+        weatherData.highestAirPolution = highestAirPolution; // not used
 
         // add summary for each day
         var totalPrecipitation = 0;
@@ -196,23 +193,8 @@ app.get("/weather/:city", async (request, response) => {
             weatherData.imageUrl = imageData.data.photos[0].src.landscape; // Get the first image from the search results
         }
 
-        // Calculate outdoor rating
-        for (let i = 0; i < weatherData.summary.length; i++) {
-            const day = weatherData.days[i];
-            const outdoorRating =
-                day.outdoorRating = outdoorRating;
-        }
-
         response.send(weatherData);
     } catch (error) {
         console.error('Error fetching data:', error);
     }
-});
-
-app.get("/status", (request, response) => {
-    const status = {
-        "Status": "Running"
-    };
-    console.log("Recieved GET request for /status");
-    response.send(status);
 });
