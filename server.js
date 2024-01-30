@@ -6,8 +6,8 @@ const app = express();
 app.use(express.json());
 
 const PORT = 3000;
-const apiKey = 'c19a0bb7a62a97244341bb2b302a2859';
-const pexelsAPI = 'z19NEqU0Pj1txoPKDzUjVujpMVEEQ5oIOOsNfNMVdWo5sEwpkbTHFoGw';
+const apiKey = ''; // Open Weather Map API Key
+const pexelsAPI = ''; // Pexels stock images API key
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
